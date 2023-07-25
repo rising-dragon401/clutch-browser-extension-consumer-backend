@@ -1,0 +1,12 @@
+---
+source: tests/guardian_api_test.rs
+expression: json_response
+---
+status: Success
+payload:
+  Success:
+    accounts:
+      - id: "[uuid]"
+        email: someone@example.com
+        wallet_address: w123
+

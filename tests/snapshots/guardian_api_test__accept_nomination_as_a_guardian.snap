@@ -1,0 +1,10 @@
+---
+source: tests/guardian_api_test.rs
+expression: json_response
+---
+status: Success
+payload:
+  Success:
+    nomination_id: "[uuid]"
+    status: ACCEPTED
+

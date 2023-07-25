@@ -1,0 +1,9 @@
+---
+source: tests/guardian_settings_api_test.rs
+expression: json_response
+---
+status: Error
+payload:
+  Error:
+    error_message: "Invalid account guardians supplied: [\"6ac5790f-148d-46be-a657-0b06ad41d135\"], valid guardians are: [\"d69e35f5-3ce3-402b-b70b-11745651d88f\"]"
+

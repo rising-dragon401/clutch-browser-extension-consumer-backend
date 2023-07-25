@@ -1,0 +1,6 @@
+---
+source: tests/nomination_api_test.rs
+expression: res.text().await
+---
+"{\"status\":\"Error\",\"payload\":{\"Error\":{\"error_message\":\"Error account not found for account: does_not_exist\"}}}"
+

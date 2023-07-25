@@ -1,0 +1,6 @@
+---
+source: tests/account_guardians_api_test.rs
+expression: delete_res.text().await
+---
+"{\"status\":\"Error\",\"payload\":{\"Error\":{\"error_message\":\"Guardian must not be ACTIVE\"}}}"
+

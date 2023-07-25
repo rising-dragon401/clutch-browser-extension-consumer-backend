@@ -1,0 +1,62 @@
+[package]
+name = "clutch_browser_extension_backend"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "lib"
+path = "src/lib/mod.rs"
+
+[[bin]]
+name = "server"
+path = "src/server.rs"
+
+[dependencies]
+axum = { version = "0.6.2", features = ["headers"] }
+ethers = "2.0.4"
+ethers-solc = "2.0.4"
+headers = "0.3"
+tower = "0.4.13"
+hyper = { version = "0.14.23", features = ["full"] }
+tokio = { version = "1.24.1", features = ["full"] }
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.91"
+axum-test-helper = "0.*"
+sendinblue-v3 = "3.1.0"
+validator = "0.16.0"
+dotenvy = "0.15.6"
+sea-orm = { version = "0.11.0", features = ["sqlx-sqlite", "runtime-tokio-native-tls", "macros", "with-chrono"], default-features = false }
+jsonwebtoken = "8.2.0"
+lazy_static = "1"
+anyhow = "1"
+tracing = "0.1"
+time = { version = "0.3", features = ["macros"] }
+rand = "0.8.5"
+config = "0.13.3"
+refinery = { version = "0.8.7", features = ["rusqlite"]}
+securestore = "0.100.0"
+once_cell = "1.8"
+email_address = "0.2.4"
+reqwest = { version = "0.11", features = ["json"] }
+chrono = "0.4.23"
+axum-auth = "0.4"
+log = "0.4.0"
+env_logger = "0.10.0"
+clutch-wallet-lib = { path="./../clutch-browser-extension-lib" }
+
+[dependencies.uuid]
+version = "1.2.2"
+features = [
+    "v4",                # Lets you generate random UUIDs
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+]
+
+[dev-dependencies]
+insta = { version = "1.26.0", features = ["yaml", "redactions", "filters"] }
+
+[profile.dev.package.insta]
+opt-level = 3
+
+[profile.dev.package.similar]
+opt-level = 3

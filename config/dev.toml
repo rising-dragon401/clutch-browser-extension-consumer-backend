@@ -1,0 +1,19 @@
+[service]
+host = "127.0.0.1"
+port = 5000
+
+[database]
+url = "db/dev.db"
+
+[email]
+key = "secret"
+base_url = "https://api.sendinblue.com/v3/"
+template_id = 89
+send_limit = 4
+
+[jwt]
+key = "secret"
+
+[secrets]
+vault = "secure/dev.json"
+key = "secure/dev.key"

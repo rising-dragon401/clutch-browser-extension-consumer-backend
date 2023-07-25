@@ -1,0 +1,21 @@
+---
+source: tests/guardian_settings_api_test.rs
+expression: json_response
+---
+status: Success
+payload:
+  Success:
+    signing_strategies:
+      - OneOfOne
+      - OneOfTwo
+      - TwoOfTwo
+      - OneOfThree
+      - TwoOfThree
+      - ThreeOfThree
+    signers: OneOfOne
+    active_guardians:
+      - id: "[uuid]"
+        email: guardian@example.com
+        wallet_address: guardian@example.com
+        status: ACTIVE
+

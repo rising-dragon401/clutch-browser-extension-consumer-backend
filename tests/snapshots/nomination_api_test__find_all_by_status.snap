@@ -1,0 +1,14 @@
+---
+source: tests/nomination_api_test.rs
+expression: json_response
+---
+status: Success
+payload:
+  Success:
+    nominations:
+      - id: "[uuid]"
+        email: guardian1@example.com
+        guardian_id: guardian_id1
+        account_id: "[uuid]"
+        status: PENDING
+

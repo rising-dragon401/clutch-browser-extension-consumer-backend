@@ -1,0 +1,9 @@
+---
+source: tests/nomination_api_test.rs
+expression: json_response
+---
+status: Success
+payload:
+  Success:
+    nomination_id: "[uuid]"
+

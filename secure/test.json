@@ -1,0 +1,21 @@
+{
+  "version": 3,
+  "iv": "/2e+wDCsb580ZlK4lEDr+w==",
+  "sentinel": {
+    "iv": "FCV2wqGbezqOkg1hVI6sgw==",
+    "hmac": "je9u7GPxINIlyluX4EVuJtXT1mU=",
+    "payload": "rPiR/OBVV25r+/sED7tYP2egdGlg3b8QG3ELpebM/W1ZCHJHpmF4eD0ie5cbzZj7"
+  },
+  "secrets": {
+    "email:key": {
+      "iv": "dhGgxigkeG94400Lo0rdgg==",
+      "hmac": "AB8dUjpoESSj2oesa/P/03eBRYk=",
+      "payload": "epvYs03NnjOOtggwacB/sA=="
+    },
+    "jwt:key": {
+      "iv": "oxXRuOpOIVhm5ERKdQzSUQ==",
+      "hmac": "kdjge8DzmJ7G16Pq7OWJe7tWnZM=",
+      "payload": "5n2w/V/D3zW0v4+5SUJ7BZ9rYmM9F4/pUWolf2BDyp6+ny2D7pKp1+65NTmegrd5"
+    }
+  }
+}

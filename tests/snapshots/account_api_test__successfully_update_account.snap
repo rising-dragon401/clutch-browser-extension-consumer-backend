@@ -1,0 +1,6 @@
+---
+source: tests/account_api_test.rs
+expression: res.text().await
+---
+"{\"status\":\"Success\",\"payload\":{\"Success\":{\"updated\":true}}}"
+

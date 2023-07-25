@@ -1,0 +1,9 @@
+---
+source: tests/guardian_api_test.rs
+expression: json_response
+---
+status: Error
+payload:
+  Error:
+    error_message: Invalid status must be ACCEPTED or REJECTED
+

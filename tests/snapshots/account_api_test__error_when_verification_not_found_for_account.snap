@@ -1,0 +1,6 @@
+---
+source: tests/account_api_test.rs
+expression: res.text().await
+---
+"{\"status\":\"Error\",\"payload\":{\"Error\":{\"error_message\":\"Verification not found with email someone@example.com and code 123456\"}}}"
+

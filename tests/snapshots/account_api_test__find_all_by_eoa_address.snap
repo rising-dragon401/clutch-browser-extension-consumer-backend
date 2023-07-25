@@ -1,0 +1,14 @@
+---
+source: tests/account_api_test.rs
+expression: json_response
+---
+status: Success
+payload:
+  Success:
+    accounts:
+      - id: "[uuid]"
+        email: first@example.com
+        wallet_address: ""
+        eoa_address: "123"
+        updated_at: "[timestamp]"
+

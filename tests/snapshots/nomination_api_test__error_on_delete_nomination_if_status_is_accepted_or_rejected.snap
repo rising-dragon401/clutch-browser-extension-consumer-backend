@@ -1,0 +1,9 @@
+---
+source: tests/nomination_api_test.rs
+expression: json_response
+---
+status: Error
+payload:
+  Error:
+    error_message: "Nomination can't be deleted with state: ACCEPTED, must be in state PENDING"
+

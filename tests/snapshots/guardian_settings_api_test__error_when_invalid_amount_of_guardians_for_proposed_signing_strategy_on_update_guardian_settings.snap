@@ -1,0 +1,9 @@
+---
+source: tests/guardian_settings_api_test.rs
+expression: json_response
+---
+status: Error
+payload:
+  Error:
+    error_message: "Invalid number of guardians supplied. Expected 2, got 1, for signing strategy 'OneOfTwo'"
+
