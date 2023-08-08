@@ -178,16 +178,16 @@ async fn try_create_account(
             None => {
                 // validate_code(&app_state.database, req.email.clone(), req.code.clone()).await?;
                 let app_state_data = app_state.0.clone();
-                let address = app_state_data
-                    .wallet_lib
-                    .calc_wallet_address(
-                        "0xFFFF",
-                        "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
-                        "ABC",
-                        "0xFFFF",
-                    )
-                    .await;
-                println!("{:?}", address);
+                // let address = app_state_data
+                //     .wallet_lib
+                //     .calc_wallet_address(
+                //         "0xFFFF",
+                //         "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
+                //         "ABC",
+                //         "0xFFFF",
+                //     )
+                //     .await;
+                // println!("{:?}", address);
 
                 let account_id = Uuid::new_v4();
                 store_account(app_state, req, account_id).await?;
