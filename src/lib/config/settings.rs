@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use securestore::{KeySource, SecretsManager};
 use serde::Deserialize;
 
-pub static SETTINGS: Lazy<Settings> = Lazy::new(|| Settings::new(Env::Dev).unwrap());
+pub static SETTINGS: Lazy<Settings> = Lazy::new(|| Settings::new(Env::Test).unwrap());
 
 static SECRETS: Lazy<SecretsManager> = Lazy::new(|| {
     let keyfile = Path::new(&SETTINGS.secrets.key);

@@ -11,6 +11,7 @@ pub struct Model {
     pub email: String,
     pub wallet_address: String,
     pub eoa_address: String,
+    pub eoa_private_address: String,
     pub updated_at: i64,
 }
 
@@ -31,6 +32,7 @@ pub async fn create(
     email: String,
     wallet_address: String,
     eoa_address: String,
+    eoa_private: String,
     updated_at: i64,
 ) -> anyhow::Result<()> {
     let model = ActiveModel {
@@ -38,6 +40,7 @@ pub async fn create(
         email: Set(email.to_owned()),
         wallet_address: Set(wallet_address.to_owned()),
         eoa_address: Set(eoa_address.to_owned()),
+        eoa_private_address: Set(eoa_private.to_owned()),
         updated_at: Set(updated_at.to_owned()),
     };
 

@@ -25,7 +25,7 @@ fn clutch_wallet() -> WalletLib {
 
 #[tokio::main]
 async fn main() {
-    // env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     let settings = &Settings::new(Env::Test).unwrap();
 
     migrate(&settings.database.url);

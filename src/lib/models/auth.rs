@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::config::settings::{Env, Settings};
 
 pub static KEYS: Lazy<Keys> = Lazy::new(|| {
-    let secret = &Settings::new(Env::Dev).unwrap().jwt.key();
+    let secret = &Settings::new(Env::Test).unwrap().jwt.key();
     Keys::new(secret.as_bytes())
 });
 
