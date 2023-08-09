@@ -392,6 +392,7 @@ async fn create_verified_account(
         email.clone(),
         wallet_address,
         eoa_addres,
+        "".to_string(),
         account_created_at,
     )
     .await
