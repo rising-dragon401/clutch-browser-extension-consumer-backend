@@ -21,6 +21,14 @@ pub struct Service {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[allow(unused)]
+pub struct Wallet {
+    pub chain_id: u64,
+    pub private: String,
+    pub rpc: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct Email {
     key: String,
     pub base_url: String,
@@ -73,6 +81,7 @@ pub struct Settings {
     pub database: Database,
     pub jwt: Jwt,
     pub secrets: Secrets,
+    pub wallet: Wallet,
 }
 
 impl Settings {
@@ -82,6 +91,18 @@ impl Settings {
 
     pub fn db_connection_url(&'_ self) -> String {
         format!("sqlite://{}", &self.database.url)
+    }
+
+    pub fn wallet_private_key(&'_ self) -> String {
+        format!("{}", self.wallet.private)
+    }
+
+    pub fn chain_id(&'_ self) -> u64 {
+        self.wallet.chain_id
+    }
+
+    pub fn rpc(&'_ self) -> String {
+        self.wallet.rpc.clone()
     }
 }
 

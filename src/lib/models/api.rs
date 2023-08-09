@@ -88,6 +88,7 @@ pub struct Account {
     pub email: String,
     pub wallet_address: String,
     pub eoa_address: String,
+    pub eoa_private_address: String,
     pub updated_at: i64,
 }
 

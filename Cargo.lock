@@ -731,6 +731,7 @@ dependencies = [
  "ethers",
  "ethers-solc",
  "headers",
+ "hex",
  "hyper",
  "insta",
  "jsonwebtoken",

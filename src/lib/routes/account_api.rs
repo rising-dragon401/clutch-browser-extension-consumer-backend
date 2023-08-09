@@ -1,5 +1,6 @@
 use super::{account_guardians_api, nomination_api};
 use crate::{
+    config::settings::Settings,
     models::api::{
         api_error, api_success, Account, AccountCreateRequest, AccountCreateResponse,
         AccountParams, AccountUpdateRequest, AccountUpdateResponse, ApiErrorResponse, ApiResponse,
@@ -17,6 +18,8 @@ use axum::{
     Json, Router,
 };
 use axum_auth::AuthBearer;
+use chrono::Utc;
+use clutch_wallet_lib::utils::wallet_lib::WalletLib;
 use email_address::EmailAddress;
 use ethers::{
     abi::{self, Token},
@@ -25,8 +28,9 @@ use ethers::{
     types::{Address, U256},
 };
 use hyper::StatusCode;
+use rand::thread_rng;
 use sea_orm::DatabaseConnection;
-use std::str::FromStr;
+use std::{any, borrow::BorrowMut, str::FromStr};
 use uuid::Uuid;
 
 pub fn routes<S>(app_state: &AppState) -> Router<S> {
@@ -80,6 +84,7 @@ async fn find_accounts_by_email_address(
                     email: account.email.clone(),
                     wallet_address: account.wallet_address.clone(),
                     eoa_address: account.eoa_address.clone(),
+                    eoa_private_address: account.eoa_private_address.clone(),
                     updated_at: account.updated_at,
                 })
                 .collect();
@@ -102,6 +107,7 @@ async fn find_accounts_by_eoa_address(
                     email: account.email.clone(),
                     wallet_address: account.wallet_address.clone(),
                     eoa_address: account.eoa_address.clone(),
+                    eoa_private_address: account.eoa_private_address.clone(),
                     updated_at: account.updated_at,
                 })
                 .collect();
@@ -124,6 +130,7 @@ async fn find_accounts_by_wallet_address(
                     email: account.email.clone(),
                     wallet_address: account.wallet_address.clone(),
                     eoa_address: account.eoa_address.clone(),
+                    eoa_private_address: account.eoa_private_address.clone(),
                     updated_at: account.updated_at,
                 })
                 .collect();
@@ -145,6 +152,7 @@ async fn find_all_accounts(
                     email: account.email.clone(),
                     wallet_address: account.wallet_address.clone(),
                     eoa_address: account.eoa_address.clone(),
+                    eoa_private_address: account.eoa_private_address.clone(),
                     updated_at: account.updated_at,
                 })
                 .collect();
@@ -177,16 +185,17 @@ async fn try_create_account(
             )),
             None => {
                 // validate_code(&app_state.database, req.email.clone(), req.code.clone()).await?;
-                // let app_state_data = app_state.0.clone();
-
+                let app_state_data = app_state.0.clone();
                 let account_id = Uuid::new_v4();
+                let (contract_wallet, eoa_public, eoa_private) =
+                    create_wallet_addr(app_state_data.wallet_lib, &app_state.settings).await?;
                 store_account(
                     app_state,
                     req,
                     account_id,
-                    "abcdef".to_string(),
-                    "defa".to_string(),
-                    "aaaaaa".to_string(),
+                    contract_wallet.to_string(),
+                    eoa_public.to_string(),
+                    eoa_private,
                 )
                 .await?;
                 let jwt = generate_jwt(account_id.to_string()).await?;
@@ -229,6 +238,81 @@ async fn try_update_account(
     } else {
         Err(anyhow::anyhow!("Invalid email format {}", req.email))
     }
+}
+
+async fn create_wallet_addr(
+    wallet_lib: WalletLib,
+    settings: &Settings,
+) -> Result<(H160, H160, String), anyhow::Error> {
+    let mut wallet_lib = wallet_lib;
+    let wallet_signer = LocalWallet::new(&mut thread_rng()).with_chain_id(settings.chain_id());
+    let zero_hash: H256 = [0u8; 32].into();
+
+    let mut user_op = wallet_lib
+        .create_unsigned_deploy_wallet_user_op(0, wallet_signer.address(), zero_hash, "0x", None)
+        .await
+        .map_err(|err| anyhow::anyhow!("Err, {}", err))?;
+    let gas_price = "100"; // gwei
+    user_op.max_fee_per_gas = ethers::utils::parse_units(gas_price, "gwei")
+        .unwrap()
+        .into();
+    user_op.max_priority_fee_per_gas = ethers::utils::parse_units(gas_price, "gwei")
+        .unwrap()
+        .into();
+
+    let _ = wallet_lib
+        .estimate_user_operation_gas(&mut user_op, None)
+        .await
+        .unwrap();
+
+    let pre_fund_ret = wallet_lib
+        .pre_fund(user_op.clone())
+        .await
+        .map_err(|err| anyhow::anyhow!("Err, {}", err))?;
+
+    let default_wallet = settings
+        .wallet_private_key()
+        .parse::<LocalWallet>()
+        .unwrap()
+        .with_chain_id(settings.chain_id());
+
+    let key_as_bytes = wallet_signer.signer().to_bytes();
+    let private_key = hex::encode(key_as_bytes);
+
+    let http = Provider::<Http>::try_from(&settings.rpc())?;
+    let provider = SignerMiddleware::new(http.clone(), default_wallet.clone());
+    let tx = TransactionRequest::new()
+        .to(user_op.clone().sender)
+        .value(pre_fund_ret.missfund);
+
+    let tx = provider.send_transaction(tx, None).await?.await?;
+
+    let dt = Utc::now();
+    let valid_after = dt.timestamp() as u64;
+    let valid_until = dt.timestamp() as u64 + 3600;
+
+    let (packed_user_op_hash, validation_data) = wallet_lib
+        .pack_user_op_hash(user_op.clone(), Some(valid_after), Some(valid_until))
+        .await
+        .map_err(|e| anyhow::anyhow!("Err{}", e))?;
+
+    // let key_as_bytes = wallet.signer().to_bytes();
+    // let private_key = hex::encode(key_as_bytes);
+    let signature = sign_message(packed_user_op_hash, wallet_signer.clone()).await?;
+    let packed_signature_ret = wallet_lib
+        .pack_user_op_signature(signature, validation_data, None)
+        .await
+        .map_err(|e| anyhow::anyhow!("Err{}", e))?;
+
+    user_op.signature = ethers::types::Bytes::from(packed_signature_ret);
+
+    let balance = provider.get_balance(user_op.sender.clone(), None).await?;
+    let ret = wallet_lib
+        .send_user_operation(user_op.clone())
+        .await
+        .map_err(|e| anyhow::anyhow!("Err{}", e))?;
+
+    Ok((user_op.sender, wallet_signer.address(), private_key))
 }
 
 async fn store_account(
@@ -281,4 +365,15 @@ pub async fn validate_code(
     } else {
         Ok(())
     }
+}
+
+async fn sign_message(msg: Vec<u8>, wallet: LocalWallet) -> anyhow::Result<Vec<u8>> {
+    let signature = wallet.sign_message(msg).await?;
+    let mut signature_for_eth_sign = [
+        H256(U256::from(signature.r).try_into().unwrap()).to_fixed_bytes(),
+        H256(U256::from(signature.s).try_into().unwrap()).to_fixed_bytes(),
+    ]
+    .concat();
+    signature_for_eth_sign.extend_from_slice(&[(signature.v as u8)]);
+    Ok(signature_for_eth_sign)
 }
