@@ -76,7 +76,10 @@ pub async fn create_verified_account_jwt(
         .await;
 
     match json_response.payload {
-        ApiPayload::Success(AccountCreateResponse { jwt }) => jwt,
+        ApiPayload::Success(AccountCreateResponse {
+            jwt,
+            contract_wallet_addr,
+        }) => jwt,
         ApiPayload::Error(ApiErrorResponse { error_message }) => {
             panic!("error: {}", error_message)
         }

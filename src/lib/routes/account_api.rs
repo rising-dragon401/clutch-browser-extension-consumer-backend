@@ -11,9 +11,10 @@ use crate::{
         time::get_unix_timestamp_ms,
     },
     repos::{account_repo, db::AppState, verification_repo},
+    utils::convert_to_hex,
 };
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     routing::get,
     Json, Router,
 };
@@ -39,6 +40,7 @@ pub fn routes<S>(app_state: &AppState) -> Router<S> {
             "/",
             get(get_accounts).post(create_account).put(update_account),
         )
+        .route("/:email", get(get_account_by_email))
         .nest("/nominations", nomination_api::routes(app_state))
         .nest("/guardians", account_guardians_api::routes(app_state))
         .with_state(app_state.to_owned())
@@ -52,6 +54,30 @@ async fn update_account(
     match try_update_account(&app_state, token, &req).await {
         Ok(payload) => Ok(Json(api_success(payload))),
         Err(error_payload) => Ok(Json(api_error(format!("{}", error_payload)))),
+    }
+}
+
+async fn get_account_by_email(
+    app_state: State<AppState>,
+    Path(email): Path<String>,
+) -> Result<Json<ApiResponse<Account, ApiErrorResponse>>, StatusCode> {
+    if EmailAddress::is_valid(&email) {
+        let account = account_repo::find_by_email(&app_state.database, &email)
+            .await
+            .unwrap();
+        match account {
+            Some(acc) => Ok(Json(api_success(Account {
+                id: acc.id,
+                email: acc.email,
+                wallet_address: acc.wallet_address,
+                eoa_address: acc.eoa_address,
+                eoa_private_address: acc.eoa_private_address,
+                updated_at: acc.updated_at,
+            }))),
+            None => Ok(Json(api_error(format!("No such email {}", email)))),
+        }
+    } else {
+        Ok(Json(api_error(format!("Invalid email format {}", email))))
     }
 }
 
@@ -193,13 +219,16 @@ async fn try_create_account(
                     app_state,
                     req,
                     account_id,
-                    contract_wallet.to_string(),
-                    eoa_public.to_string(),
+                    convert_to_hex(contract_wallet),
+                    convert_to_hex(eoa_public),
                     eoa_private,
                 )
                 .await?;
                 let jwt = generate_jwt(account_id.to_string()).await?;
-                Ok(AccountCreateResponse { jwt })
+                Ok(AccountCreateResponse {
+                    jwt,
+                    contract_wallet_addr: convert_to_hex(contract_wallet),
+                })
             }
         }
     } else {

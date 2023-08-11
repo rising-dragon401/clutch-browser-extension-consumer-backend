@@ -65,6 +65,7 @@ pub struct AccountCreateRequest {
 #[serde(default)]
 pub struct AccountCreateResponse {
     pub jwt: String,
+    pub contract_wallet_addr: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
