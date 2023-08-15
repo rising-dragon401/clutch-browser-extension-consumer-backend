@@ -19,6 +19,6 @@ vault = "secure/test.json"
 key = "secure/test.key"
 
 [wallet]
-chain_id = 1337
+chain_id = 80001
 private = "08266d3c24aaa41651c4b9bd7ca52c937afe6a535a0f735dd3c7168fe01741ee"
-rpc = "http://localhost:8545"
+rpc = "https://polygon-mumbai.g.alchemy.com/v2/WY_VYkPKizVcctkBg5Cp4BP4EI9_K3lZ"
