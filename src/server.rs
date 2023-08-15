@@ -8,20 +8,9 @@ use std::net::SocketAddr;
 
 use clutch_wallet_lib::utils::wallet_lib::*;
 
-fn clutch_wallet() -> WalletLib {
-    // let mut wallet_lib = WalletLib::new(
-    //     "http://localhost:8545",
-    //     "http://localhost:3000/rpc",
-    //     "0x6eca9bac37ba92908805c68c2de7106dd15fde28",
-    //     "0xc4b4f2df5a4936aeda4df93ec203d6c6100bdb7f",
-    //     "0xf16e8831312c0a4b884e49a639083c2ec9cfd4f1",
-    //     "0x861adf70d644dfe2038775f648d2509190ee7579",
-    //     "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
-    //     "0x240c9cebe72a7f3010b40b5ef166be1ed56ddf44",
-    //     1337,
-    // );
-    let mut wallet_lib = WalletLib::new(
-        "https://polygon-mumbai.g.alchemy.com/v2/WY_VYkPKizVcctkBg5Cp4BP4EI9_K3lZ",
+fn clutch_wallet(setting: &Settings) -> WalletLib {
+    let wallet_lib = WalletLib::new(
+        &setting.rpc(),
         "http://localhost:3000/rpc",
         "0x2a83dbe5f2100d196486baa58ad740030dad653a",
         "0xc4b4f2df5a4936aeda4df93ec203d6c6100bdb7f",
@@ -29,7 +18,7 @@ fn clutch_wallet() -> WalletLib {
         "0x5748f0a6a5d251e0f511470af60fec8a55291217",
         "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
         "0x370f9c8e06c2a6ae986fc050d36d0c6a0475bb99",
-        80001,
+        setting.chain_id(),
     );
     wallet_lib
 }
@@ -44,7 +33,7 @@ async fn main() {
     let app_state = AppState {
         settings: settings.to_owned(),
         database: db_connect(settings.db_connection_url()).await,
-        wallet_lib: clutch_wallet(),
+        wallet_lib: clutch_wallet(settings),
     };
 
     let router = router(app_state);
