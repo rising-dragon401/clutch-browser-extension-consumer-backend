@@ -20,5 +20,5 @@ key = "secure/test.key"
 
 [wallet]
 chain_id = 1337
-private = "9131cbad8e7e5369d670022b3ea8781d7ed83681a3720d3e551833816c2fb6a4"
+private = "--"
 rpc = "http://localhost:8545"
