@@ -6,9 +6,10 @@ port = 5000
 url = "db/test.db"
 
 [email]
+# key = "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"
 key = "secret"
 base_url = "https://api.sendinblue.com/v3/"
-template_id = 89
+template_id = 2
 send_limit = 4
 
 [jwt]

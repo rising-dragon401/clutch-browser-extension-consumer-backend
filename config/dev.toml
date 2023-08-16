@@ -3,7 +3,7 @@ host = "127.0.0.1"
 port = 5000
 
 [database]
-url = "db/dev.db"
+url = "db/test.db"
 
 [email]
 key = "secret"
@@ -15,5 +15,10 @@ send_limit = 4
 key = "secret"
 
 [secrets]
-vault = "secure/dev.json"
-key = "secure/dev.key"
+vault = "secure/test.json"
+key = "secure/test.key"
+
+[wallet]
+chain_id = 1337
+private = "9131cbad8e7e5369d670022b3ea8781d7ed83681a3720d3e551833816c2fb6a4"
+rpc = "http://localhost:8545"
