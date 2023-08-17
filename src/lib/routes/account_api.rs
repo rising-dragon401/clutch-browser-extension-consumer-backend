@@ -210,7 +210,7 @@ async fn try_create_account(
                 req.email
             )),
             None => {
-                // validate_code(&app_state.database, req.email.clone(), req.code.clone()).await?;
+                validate_code(&app_state.database, req.email.clone(), req.code.clone()).await?;
                 let app_state_data = app_state.0.clone();
                 let account_id = Uuid::new_v4();
                 let (contract_wallet, eoa_public, eoa_private) =
