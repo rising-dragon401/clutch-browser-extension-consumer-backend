@@ -139,6 +139,11 @@ The user wants to add more than one guardian so they must nominate more guardian
 
 - [x] [Email verification](https://github.com/clutch-wallet/clutch-browser-extension-backend/issues/1)
   - [x] POST /email/verify
+ - [x] User Wallet Management
+  - [x] create - POST /createwallet
+  - [x] send transaction - POST /send
+  - [x] receive transaction - POST /receive
+  - [x] swap transdaction - POST/swap
 - [x] Account Management
   - [x] create - POST /accounts
   - [x] retrieve all - GET /accounts
