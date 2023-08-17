@@ -70,6 +70,17 @@ pub async fn find_by_email(db: &DatabaseConnection, email: &str) -> anyhow::Resu
         .map_err(|e| anyhow::anyhow!(e))
 }
 
+pub async fn find_by_wallet_address(
+    db: &DatabaseConnection,
+    wallet_address: String,
+) -> anyhow::Result<Option<Model>> {
+    Entity::find()
+        .filter(Column::WalletAddress.eq(wallet_address))
+        .one(db)
+        .await
+        .map_err(|e| anyhow::anyhow!(e))
+}
+
 pub async fn find_all_by_wallet_address(
     db: &DatabaseConnection,
     wallet_address: String,

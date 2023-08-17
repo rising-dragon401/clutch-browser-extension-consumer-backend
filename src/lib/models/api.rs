@@ -1,3 +1,4 @@
+use ethers::types::U256;
 use sea_orm::entity::prelude::*;
 use std::{fmt, str::FromStr};
 
@@ -91,6 +92,20 @@ pub struct Account {
     pub eoa_address: String,
     pub eoa_private_address: String,
     pub updated_at: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct SendTransactionRequest {
+    pub from: String,
+    pub to: String,
+    pub value: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct SendTransactionResponse {
+    pub status: String,    
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]

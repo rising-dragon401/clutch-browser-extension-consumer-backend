@@ -3,7 +3,7 @@ use crate::routes::verification_api;
 use axum::{response::Html, routing::get, Router};
 use hyper::{StatusCode, Uri};
 
-use super::{account_api, guardian_api};
+use super::{account_api, guardian_api, transaction_api};
 
 pub fn router(app_state: AppState) -> Router {
     Router::new()
@@ -11,6 +11,7 @@ pub fn router(app_state: AppState) -> Router {
         .nest("/email", verification_api::routes(&app_state))
         .nest("/accounts", account_api::routes(&app_state))
         .nest("/guardian", guardian_api::routes(&app_state))
+        .nest("/transaction", transaction_api::routes(&app_state))
         .fallback(fallback)
 }
 
