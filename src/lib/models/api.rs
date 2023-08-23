@@ -1,6 +1,6 @@
 use sea_orm::entity::prelude::*;
 use std::{fmt, str::FromStr};
-
+use utoipa::ToSchema;
 use serde::{de, Deserialize, Deserializer, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -41,27 +41,27 @@ pub struct ApiErrorResponse {
 }
 
 // Email Verification API
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
 #[serde(default)]
 pub struct VerificationRequest {
     pub email: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
 #[serde(default)]
 pub struct VerificationResponse {
     pub success: bool,
 }
 
 // Account API
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
 #[serde(default)]
 pub struct AccountCreateRequest {
     pub email: String,
     pub code: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
 #[serde(default)]
 pub struct AccountCreateResponse {
     pub jwt: String,
@@ -84,6 +84,7 @@ pub struct AccountUpdateResponse {
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]
+#[derive(ToSchema)]
 pub struct Account {
     pub id: String,
     pub email: String,
@@ -93,7 +94,7 @@ pub struct Account {
     pub updated_at: i64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
 #[serde(default)]
 pub struct SendTransactionRequest {
     pub from: String,
@@ -101,7 +102,7 @@ pub struct SendTransactionRequest {
     pub value: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
 #[serde(default)]
 pub struct SendTransactionResponse {
     pub status: String,    

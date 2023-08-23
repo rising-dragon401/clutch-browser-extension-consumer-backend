@@ -1,14 +1,17 @@
 use crate::repos::db::AppState;
-use crate::routes::verification_api;
 use axum::{response::Html, routing::get, Router};
 use hyper::{StatusCode, Uri};
 use utoipa_swagger_ui::SwaggerUi;
 use utoipa::OpenApi;
-use super::{account_api, guardian_api, transaction_api};
+use super::{account_api, guardian_api, transaction_api, verification_api};
+use crate::models::api;
 
 #[derive(OpenApi)]
 #[openapi(
     info(description = "Clutch Api description"),
+    components(schemas(api::Account, api::VerificationRequest, api::VerificationResponse, api::AccountCreateRequest, api::AccountCreateResponse,
+    api::SendTransactionRequest, api::SendTransactionResponse)),
+    paths(verification_api::create_verification, account_api::create_account, transaction_api::send_transaction)
 )]
 struct ApiDoc;
 

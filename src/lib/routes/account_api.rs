@@ -23,7 +23,6 @@ use chrono::Utc;
 use clutch_wallet_lib::utils::wallet_lib::WalletLib;
 use email_address::EmailAddress;
 use ethers::{
-    abi::{self, Token},
     prelude::*,
     providers::Provider,
     types::{Address, U256},
@@ -31,7 +30,6 @@ use ethers::{
 use hyper::StatusCode;
 use rand::thread_rng;
 use sea_orm::DatabaseConnection;
-use std::{any, borrow::BorrowMut, str::FromStr};
 use uuid::Uuid;
 
 pub fn routes<S>(app_state: &AppState) -> Router<S> {
@@ -188,6 +186,13 @@ async fn find_all_accounts(
     }
 }
 
+#[utoipa::path(
+  post,
+  path="/accounts/",
+  responses(
+    (status = 200, description = "Account is created successfully", body=AccountCreateResponse)
+  )
+)]
 async fn create_account(
     app_state: State<AppState>,
     Json(req): Json<AccountCreateRequest>,

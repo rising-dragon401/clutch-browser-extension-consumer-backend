@@ -32,6 +32,13 @@ pub fn routes<S>(app_state: &AppState) -> Router<S> {
         .with_state(app_state.to_owned())
 }
 
+#[utoipa::path(
+    post,
+    path = "/transaction/",
+    responses(
+        (status = 200, description = "Send funds successfully", body = SendTransactionResponse),
+    )
+)]
 async fn send_transaction(
     app_state: State<AppState>,
     Json(req): Json<SendTransactionRequest>,

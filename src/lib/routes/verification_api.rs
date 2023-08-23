@@ -20,7 +20,10 @@ pub fn routes<S>(app_state: &AppState) -> Router<S> {
         .route("/verify", post(create_verification))
         .with_state(app_state.to_owned())
 }
-
+#[utoipa::path(post, path="/email/verify", 
+responses(
+    (status = 200, description="Create verify code successfully", body=VerificationResponse)    
+))]
 async fn create_verification(
     app_state: State<AppState>,
     Json(req): Json<VerificationRequest>,
