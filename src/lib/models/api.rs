@@ -1,4 +1,3 @@
-use ethers::types::U256;
 use sea_orm::entity::prelude::*;
 use std::{fmt, str::FromStr};
 
