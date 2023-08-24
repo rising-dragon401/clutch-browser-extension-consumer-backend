@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use securestore::{KeySource, SecretsManager};
 use serde::Deserialize;
 
-pub static SETTINGS: Lazy<Settings> = Lazy::new(|| Settings::new(Env::Test).unwrap());
+pub static SETTINGS: Lazy<Settings> = Lazy::new(|| Settings::new(Env::Mumbai).unwrap());
 
 static SECRETS: Lazy<SecretsManager> = Lazy::new(|| {
     let keyfile = Path::new(&SETTINGS.secrets.key);
@@ -26,6 +26,7 @@ pub struct Wallet {
     pub chain_id: u64,
     pub private: String,
     pub rpc: String,
+    pub bundler_url: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -75,6 +76,48 @@ impl Jwt {
 
 #[derive(Clone, Debug, Deserialize)]
 #[allow(unused)]
+pub struct Contracts {
+    wallet_factory: String,
+    default_callback_handler: String,
+    key_store_module: String,
+    security_control_module: String,
+    entry_point: String,
+    paymaster: String,
+    wallet_logic: String,
+}
+
+impl Contracts {
+    pub fn wallet_factory(&'_ self) -> String {
+        self.wallet_factory.clone()
+    }
+
+    pub fn default_callback_handler(&'_ self) -> String {
+        self.default_callback_handler.clone()
+    }
+
+    pub fn key_store_module(&'_ self) -> String {
+        self.key_store_module.clone()
+    }
+
+    pub fn security_control_module(&'_ self) -> String {
+        self.security_control_module.clone()
+    }
+    
+    pub fn entry_point(&'_ self) -> String {
+        self.entry_point.clone()
+    }
+
+    pub fn paymaster(&'_ self) -> String {
+        self.paymaster.clone()
+    }
+
+    pub fn wallet_logic(&'_ self) -> String {
+        self.wallet_logic.clone()
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[allow(unused)]
 pub struct Settings {
     pub service: Service,
     pub email: Email,
@@ -82,6 +125,7 @@ pub struct Settings {
     pub jwt: Jwt,
     pub secrets: Secrets,
     pub wallet: Wallet,
+    pub contracts: Contracts
 }
 
 impl Settings {
@@ -104,27 +148,31 @@ impl Settings {
     pub fn rpc(&'_ self) -> String {
         self.wallet.rpc.clone()
     }
+
+    pub fn bundler(&'_ self) -> String {
+        self.wallet.bundler_url.clone()
+    }
 }
 
 pub enum Env {
-    Test,
-    Dev,
+    Mumbai,
+    Local,
     Prod,
 }
 
 impl Settings {
     pub fn new(fallback_env: Env) -> Result<Self, ConfigError> {
         let run_mode = env::var("RUN_MODE").unwrap_or_else(|_| match fallback_env {
-            Env::Test => "test".into(),
-            Env::Dev => "dev".into(),
+            Env::Mumbai => "mumbai".into(),
+            Env::Local => "local".into(),
             Env::Prod => "prod".into(),
         });
-
+        
         let s = Config::builder()
             .add_source(File::with_name(&format!("config/{}", run_mode)))
             // Add in a local configuration file
             // This file shouldn't be checked in to git
-            .add_source(File::with_name("config/local").required(false))
+            // .add_source(File::with_name("config/local").required(false))
             // Add in settings from the environment (with a prefix of APP)
             // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
             .add_source(Environment::with_prefix("app"))
