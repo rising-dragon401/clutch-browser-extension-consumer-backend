@@ -1,7 +1,7 @@
 use sea_orm::entity::prelude::*;
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{fmt, str::FromStr};
 use utoipa::ToSchema;
-use serde::{de, Deserialize, Deserializer, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ApiPayload<S, E> {
@@ -105,7 +105,24 @@ pub struct SendTransactionRequest {
 #[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
 #[serde(default)]
 pub struct SendTransactionResponse {
-    pub status: String,    
+    pub status: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct PrefundRequest {
+    pub send_type: String,
+    pub value: Option<String>,
+    pub from: String,
+    pub to: String //receiver when eth sending, token contract when erc20 sending
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct PrefundResponse {
+    pub deposit: String,
+    pub prefund: String,
+    pub missfund: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]

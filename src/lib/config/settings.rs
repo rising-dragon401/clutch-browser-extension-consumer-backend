@@ -23,10 +23,12 @@ pub struct Service {
 #[derive(Clone, Debug, Deserialize)]
 #[allow(unused)]
 pub struct Wallet {
-    pub chain_id: u64,
-    pub private: String,
-    pub rpc: String,
-    pub bundler_url: String,
+    chain_id: u64,
+    private: String,
+    rpc: String,
+    bundler_url: String,
+    default_max_fee: String,
+    default_max_priority_fee: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -151,6 +153,13 @@ impl Settings {
 
     pub fn bundler(&'_ self) -> String {
         self.wallet.bundler_url.clone()
+    }
+
+    pub fn default_max_fee(&'_ self) -> String {
+        self.wallet.default_max_fee.clone()
+    }
+    pub fn default_max_priority_fee(&'_ self) -> String {
+        self.wallet.default_max_priority_fee.clone()
     }
 }
 

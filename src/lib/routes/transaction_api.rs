@@ -1,8 +1,8 @@
 use super::{account_guardians_api, nomination_api};
 use crate::{
     models::api::{
-        api_error, api_success, ApiErrorResponse, ApiResponse, SendTransactionRequest,
-        SendTransactionResponse,
+        api_error, api_success, ApiErrorResponse, ApiResponse, PrefundRequest, PrefundResponse,
+        SendTransactionRequest, SendTransactionResponse,
     },
     repos::{account_repo, db::AppState},
     routes::sign_message,
@@ -15,12 +15,13 @@ use axum::{
 
 use chrono::Utc;
 use clutch_wallet_lib::utils::wallet_lib::{self, abi_entry_point, Transaction};
+use clutch_wallet_lib::utils::{bundler::UserOperationTransport, wallet_lib::WalletLib};
 
 use ethers::{
     abi::{Address, Token},
     prelude::encode_function_data,
     signers::{LocalWallet, Signer},
-    types::U256,
+    types::{Bytes, U256},
     utils,
 };
 use hyper::StatusCode;
@@ -29,6 +30,7 @@ use std::str::FromStr;
 pub fn routes<S>(app_state: &AppState) -> Router<S> {
     Router::new()
         .route("/", post(send_transaction))
+        .route("/prefund", post(prefund))
         .with_state(app_state.to_owned())
 }
 
@@ -73,7 +75,7 @@ async fn try_send_transaction(
     )
     .unwrap();
 
-    let tx = Transaction {
+    let tx: Transaction = Transaction {
         to: Address::from_str(&req.to).unwrap(),
         value: Some(U256::from(utils::parse_ether(&req.value)?)),
         data: Some(call_data),
@@ -122,4 +124,64 @@ async fn try_send_transaction(
     Ok(SendTransactionResponse {
         status: "Success".to_string(),
     })
+}
+
+async fn prefund(
+    app_state: State<AppState>,
+    Json(req): Json<PrefundRequest>,
+) -> Result<Json<ApiResponse<PrefundResponse, ApiErrorResponse>>, StatusCode> {
+    match try_prefud(&app_state, &req).await {
+        Ok(payload) => Ok(Json(api_success(payload))),
+        Err(error_payload) => Ok(Json(api_error(format!("{}", error_payload)))),
+    }
+}
+
+async fn try_prefud(
+    app_state: &State<AppState>,
+    req: &PrefundRequest,
+) -> anyhow::Result<PrefundResponse> {
+    let mut tx: Transaction = Default::default();
+    let app_state = app_state.0.clone();
+    let mut wallet_lib = app_state.wallet_lib;
+
+    if req.send_type == "send_eth" {
+        tx = Transaction {
+            to: Address::from_str(&req.to).unwrap(),
+            data: Some(Bytes::from(b"")),
+            value: Some(U256::from_str(&req.value.clone().unwrap()).unwrap()),
+            gas_limit: None,
+        };
+    } else if req.send_type == "send_erc20" {
+        let call_data = WalletLib::transfer_erc20_calldata(
+            Address::from_str(&req.to).unwrap(),
+            U256::from_str(&req.value.clone().unwrap()).unwrap(),
+        )
+        .unwrap();
+        tx = Transaction {
+            to: Address::from_str(&req.to).unwrap(),
+            data: Some(call_data),
+            value: None,
+            gas_limit: None,
+        };
+    };
+
+    let max_fee_per_gas = U256::from_str(&app_state.settings.default_max_fee()).unwrap();
+    let max_priority_fee_per_gas =
+        U256::from_str(&app_state.settings.default_max_priority_fee()).unwrap();
+    let user_op = wallet_lib
+        .from_transaction(
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+            Address::from_str(&req.from).unwrap(),
+            vec![tx],
+            None,
+        )
+        .await
+        .map_err(|e| anyhow::anyhow!("Err {}", e)).unwrap();
+
+    let prefund = wallet_lib
+        .pre_fund(user_op)
+        .await
+        .map_err(|e| anyhow::anyhow!("Err {}", e)).unwrap();
+    Ok(PrefundResponse { deposit: prefund.deposit.to_string(), prefund: prefund.prefund.to_string(), missfund: prefund.missfund.to_string() })
 }
