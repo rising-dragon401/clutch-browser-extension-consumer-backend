@@ -148,13 +148,13 @@ async fn try_prefud(
         tx = Transaction {
             to: Address::from_str(&req.to).unwrap(),
             data: Some(Bytes::from(b"")),
-            value: Some(U256::from_str(&req.value.clone().unwrap()).unwrap()),
+            value: Some(ethers::utils::parse_ether(&req.value.clone().unwrap()).unwrap()),
             gas_limit: None,
         };
     } else if req.send_type == "send_erc20" {
         let call_data = WalletLib::transfer_erc20_calldata(
             Address::from_str(&req.to).unwrap(),
-            U256::from_str(&req.value.clone().unwrap()).unwrap(),
+            ethers::utils::parse_ether(&req.value.clone().unwrap()).unwrap(),
         )
         .unwrap();
         tx = Transaction {
@@ -168,7 +168,7 @@ async fn try_prefud(
     let max_fee_per_gas = U256::from_str(&app_state.settings.default_max_fee()).unwrap();
     let max_priority_fee_per_gas =
         U256::from_str(&app_state.settings.default_max_priority_fee()).unwrap();
-    let user_op = wallet_lib
+    let mut user_op = wallet_lib
         .from_transaction(
             max_fee_per_gas,
             max_priority_fee_per_gas,
@@ -177,11 +177,22 @@ async fn try_prefud(
             None,
         )
         .await
-        .map_err(|e| anyhow::anyhow!("Err {}", e)).unwrap();
+        .map_err(|e| anyhow::anyhow!("Err {}", e))
+        .unwrap();
+
+    let _ = wallet_lib
+        .estimate_user_operation_gas(&mut user_op, None)
+        .await
+        .map_err(|e| anyhow::anyhow!("Err{}", e))?;
 
     let prefund = wallet_lib
         .pre_fund(user_op)
         .await
-        .map_err(|e| anyhow::anyhow!("Err {}", e)).unwrap();
-    Ok(PrefundResponse { deposit: prefund.deposit.to_string(), prefund: prefund.prefund.to_string(), missfund: prefund.missfund.to_string() })
+        .map_err(|e| anyhow::anyhow!("Err {}", e))
+        .unwrap();
+    Ok(PrefundResponse {
+        deposit: prefund.deposit.to_string(),
+        prefund: prefund.prefund.to_string(),
+        missfund: prefund.missfund.to_string(),
+    })
 }
