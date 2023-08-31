@@ -307,9 +307,8 @@ async fn create_wallet_addr(
         let approve_call_data = to.iter().map(|_| approve_data.clone()).collect::<Vec<Bytes>>();
         let call_data = WalletInstance::execute_batch(to, approve_call_data).unwrap();
         user_op.call_data = call_data;
-
     }
-    
+
     let pre_fund_ret = wallet_lib
         .pre_fund(user_op.clone())
         .await
@@ -349,8 +348,7 @@ async fn create_wallet_addr(
         .await
         .map_err(|e| anyhow::anyhow!("Err{}", e))?;
 
-    user_op.signature = ethers::types::Bytes::from(packed_signature_ret);
-    
+    user_op.signature = ethers::types::Bytes::from(packed_signature_ret);    
     let _: bool = wallet_lib
         .send_user_operation(user_op.clone())
         .await
