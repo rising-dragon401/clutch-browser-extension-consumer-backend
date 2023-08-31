@@ -1,3 +1,6 @@
+use clutch_wallet_lib::utils::{bundler::UserOperationTransport, wallet_lib::Transaction};
+use clutch_wallet_lib::utils::wallet_lib::PreFund;
+use ethers::types::{U256, Address};
 use sea_orm::entity::prelude::*;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{fmt, str::FromStr};
@@ -68,6 +71,25 @@ pub struct AccountCreateResponse {
     pub jwt: String,
     pub contract_wallet_addr: String,
 }
+
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct FormatUserOpRequest {
+    pub max_fee_per_gas: U256,
+    pub max_priority_fee_per_gas: U256,
+    pub selected_address: Address,
+    pub raw_txs: Vec<Transaction>,
+    pub pay_token: Address
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
+pub struct FormatUserOpResponse {
+    pub user_op: UserOperationTransport,
+    pub prefund: PreFund
+}
+
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]

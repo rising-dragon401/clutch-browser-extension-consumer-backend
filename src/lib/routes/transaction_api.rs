@@ -1,9 +1,6 @@
 use super::{account_guardians_api, nomination_api};
 use crate::{
-    models::api::{
-        api_error, api_success, ApiErrorResponse, ApiResponse, PrefundRequest, PrefundResponse,
-        SendTransactionRequest, SendTransactionResponse,
-    },
+    models::api::*,
     repos::{account_repo, db::AppState},
     routes::sign_message,
 };
@@ -31,6 +28,7 @@ pub fn routes<S>(app_state: &AppState) -> Router<S> {
     Router::new()
         .route("/", post(send_transaction))
         .route("/prefund", post(prefund))
+        .route("/format-user-op", post(format_user_op))
         .with_state(app_state.to_owned())
 }
 
@@ -104,7 +102,6 @@ async fn try_send_transaction(
         .estimate_user_operation_gas(&mut user_op_tx, None)
         .await
         .map_err(|e| anyhow::anyhow!("Err{}", e))?;
-    // println!("user_op_tx {:?}", user_op_tx);
     let (packed_user_op_hash, validation_data) = wallet_lib
         .pack_user_op_hash(user_op_tx.clone(), Some(valid_after), Some(valid_until))
         .await
@@ -143,7 +140,6 @@ async fn try_prefud(
     let mut tx: Transaction = Default::default();
     let app_state = app_state.0.clone();
     let mut wallet_lib = app_state.wallet_lib;
-
     if req.send_type == "send_eth" {
         tx = Transaction {
             to: Address::from_str(&req.to).unwrap(),
@@ -195,4 +191,59 @@ async fn try_prefud(
         prefund: prefund.prefund.to_string(),
         missfund: prefund.missfund.to_string(),
     })
+}
+
+async fn format_user_op(
+    app_state: State<AppState>,
+    Json(req): Json<FormatUserOpRequest>,
+) -> Result<Json<ApiResponse<FormatUserOpResponse, ApiErrorResponse>>, StatusCode> {
+    match try_format_user_op(&app_state, &req).await {
+        Ok(payload) => Ok(Json(api_success(payload))),
+        Err(error_payload) => Ok(Json(api_error(format!("{}", error_payload)))),
+    }
+}
+
+async fn try_format_user_op(
+    app_state: &State<AppState>,
+    req: &FormatUserOpRequest,
+) -> anyhow::Result<FormatUserOpResponse> {
+    let app_state = app_state.0.clone();
+    let mut wallet_lib = app_state.wallet_lib;
+    let raw_txs = req
+        .raw_txs
+        .iter()
+        .map(|trx| trx.clone())
+        .collect::<Vec<Transaction>>();
+    let max_fee_per_gas = U256::from_str(&app_state.settings.default_max_fee()).unwrap();
+    let max_priority_fee_per_gas =
+        U256::from_str(&app_state.settings.default_max_priority_fee()).unwrap();
+
+    let mut user_op = wallet_lib
+        .from_transaction(
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+            req.selected_address,
+            raw_txs,
+            None,
+        )
+        .await
+        .map_err(|err| anyhow::anyhow!("Err, {}", err))?;
+    if req.pay_token.is_zero() == false {
+        let paymaster = Address::from_str(&app_state.settings.contracts.paymaster()).unwrap();
+        user_op.paymaster_and_data = WalletLib::add_paymaster_and_data(req.pay_token, paymaster)
+            .await
+            .map_err(|err| anyhow::anyhow!("Err : {}", err))?;
+    }
+
+    let _ret = wallet_lib
+        .estimate_user_operation_gas(&mut user_op, None)
+        .await
+        .map_err(|err| anyhow::anyhow!("Err: {}", err))?;
+    let prefund = wallet_lib
+        .pre_fund(user_op.clone())
+        .await
+        .map_err(|e| anyhow::anyhow!("Err {}", e))
+        .unwrap();
+
+    Ok(FormatUserOpResponse { user_op, prefund })
 }
