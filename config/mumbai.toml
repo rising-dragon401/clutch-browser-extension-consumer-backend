@@ -6,8 +6,8 @@ port = 5000
 url = "db/test.db"
 
 [email]
-# key = "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"
-key = "secret"
+key = "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"
+# key = "secret"
 base_url = "https://api.sendinblue.com/v3/"
 template_id = 2
 send_limit = 4
@@ -33,5 +33,5 @@ default_callback_handler="0xc4b4f2df5a4936aeda4df93ec203d6c6100bdb7f"
 key_store_module="0x9cef0d6889154f56fc266c9e54250cbc5c0c9bfe"
 security_control_module="0x5748f0a6a5d251e0f511470af60fec8a55291217"
 entry_point="0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
-paymaster="0xDD3C251044EE1759e668D9fB4a0D6915E8e6E4D7"
+paymaster="0x35e218ac80e08990cf0b868deb512f6ababf1dde"
 wallet_logic="0x370f9c8e06c2a6ae986fc050d36d0c6a0475bb99"

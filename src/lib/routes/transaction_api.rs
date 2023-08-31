@@ -158,7 +158,7 @@ async fn try_prefud(
         )
         .unwrap();
         tx = Transaction {
-            to: Address::from_str(&req.to).unwrap(),
+            to: Address::from_str(&req.pay_token.clone().unwrap()).unwrap(),
             data: Some(call_data),
             value: None,
             gas_limit: None,

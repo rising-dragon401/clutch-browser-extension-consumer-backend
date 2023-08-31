@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use super::{account_guardians_api, nomination_api, sign_message};
 use crate::{
     config::settings::Settings,
@@ -20,12 +21,12 @@ use axum::{
 };
 use axum_auth::AuthBearer;
 use chrono::Utc;
-use clutch_wallet_lib::utils::wallet_lib::WalletLib;
+use clutch_wallet_lib::utils::wallet_lib::{WalletLib, WalletInstance};
 use email_address::EmailAddress;
 use ethers::{
     prelude::*,
     providers::Provider,
-    types::{Address, U256},
+    types::{Address, U256}, abi::Token,
 };
 use hyper::StatusCode;
 use rand::thread_rng;
@@ -219,7 +220,7 @@ async fn try_create_account(
                 let app_state_data = app_state.0.clone();
                 let account_id = Uuid::new_v4();
                 let (contract_wallet, eoa_public, eoa_private) =
-                    create_wallet_addr(app_state_data.wallet_lib, &app_state.settings).await?;
+                    create_wallet_addr(app_state_data.wallet_lib, &app_state.settings, &req.paymaster_tokens).await?;
                 store_account(
                     app_state,
                     req,
@@ -277,6 +278,7 @@ async fn try_update_account(
 async fn create_wallet_addr(
     wallet_lib: WalletLib,
     settings: &Settings,
+    paymaster_tokens: &Option<Vec<String>>
 ) -> Result<(H160, H160, String), anyhow::Error> {
     let mut wallet_lib = wallet_lib;
     let wallet_signer = LocalWallet::new(&mut thread_rng()).with_chain_id(settings.chain_id());
@@ -299,6 +301,15 @@ async fn create_wallet_addr(
         .await
         .unwrap();
 
+    if let Some(paymaster_tokens) = paymaster_tokens {
+        let to = paymaster_tokens.iter().map(|addr| Address::from_str(addr).unwrap()).collect::<Vec<Address>>();
+        let approve_data = WalletInstance::approve(Address::from_str(&settings.contracts.paymaster().clone()).unwrap(), ethers::utils::parse_ether(1000).unwrap()).unwrap();
+        let approve_call_data = to.iter().map(|_| approve_data.clone()).collect::<Vec<Bytes>>();
+        let call_data = WalletInstance::execute_batch(to, approve_call_data).unwrap();
+        user_op.call_data = call_data;
+
+    }
+    
     let pre_fund_ret = wallet_lib
         .pre_fund(user_op.clone())
         .await
@@ -319,7 +330,7 @@ async fn create_wallet_addr(
         .to(user_op.clone().sender)
         .value(pre_fund_ret.missfund);
 
-    let tx = provider.send_transaction(tx, None).await?.await?;
+    let _ = provider.send_transaction(tx, None).await?.await?;
 
     let dt = Utc::now();
     let valid_after = dt.timestamp() as u64;
@@ -339,9 +350,8 @@ async fn create_wallet_addr(
         .map_err(|e| anyhow::anyhow!("Err{}", e))?;
 
     user_op.signature = ethers::types::Bytes::from(packed_signature_ret);
-
-    let balance = provider.get_balance(user_op.sender.clone(), None).await?;
-    let ret = wallet_lib
+    
+    let _: bool = wallet_lib
         .send_user_operation(user_op.clone())
         .await
         .map_err(|e| anyhow::anyhow!("Err{}", e))?;

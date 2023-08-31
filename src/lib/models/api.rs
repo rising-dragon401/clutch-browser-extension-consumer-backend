@@ -59,6 +59,7 @@ pub struct VerificationResponse {
 pub struct AccountCreateRequest {
     pub email: String,
     pub code: String,
+    pub paymaster_tokens: Option<Vec<String>>
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
@@ -113,6 +114,7 @@ pub struct SendTransactionResponse {
 pub struct PrefundRequest {
     pub send_type: String,
     pub value: Option<String>,
+    pub pay_token: Option<String>,
     pub from: String,
     pub to: String //receiver when eth sending, token contract when erc20 sending
 }
