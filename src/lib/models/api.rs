@@ -120,9 +120,8 @@ pub struct Account {
 #[derive(Serialize, Deserialize, Debug, Default, ToSchema)]
 #[serde(default)]
 pub struct SendTransactionRequest {
-    pub from: String,
-    pub to: String,
-    pub value: String,
+    pub user_op: UserOperationTransport,
+    pub from: String
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, ToSchema)]

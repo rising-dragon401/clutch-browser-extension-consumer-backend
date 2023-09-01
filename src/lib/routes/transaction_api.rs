@@ -22,7 +22,7 @@ use ethers::{
     utils,
 };
 use hyper::StatusCode;
-use std::str::FromStr;
+use std::{str::FromStr, ops::Add};
 
 pub fn routes<S>(app_state: &AppState) -> Router<S> {
     Router::new()
@@ -53,7 +53,6 @@ async fn try_send_transaction(
     app_state: &State<AppState>,
     req: &SendTransactionRequest,
 ) -> anyhow::Result<SendTransactionResponse> {
-    let gas_price = "100";
     let app_state = app_state.0.clone();
     let account = account_repo::find_by_wallet_address(&app_state.database, req.from.clone())
         .await?
@@ -66,42 +65,20 @@ async fn try_send_transaction(
         .with_chain_id(app_state.settings.chain_id());
 
     let mut wallet_lib = app_state.wallet_lib;
-    let abi_entrypoint = abi_entry_point();
-    let call_data = encode_function_data(
-        abi_entrypoint.function("depositTo")?,
-        Token::Address(Address::from_str(&req.to).unwrap()),
-    )
-    .unwrap();
-
-    let tx: Transaction = Transaction {
-        to: Address::from_str(&req.to).unwrap(),
-        value: Some(U256::from(utils::parse_ether(&req.value)?)),
-        data: Some(call_data),
-        gas_limit: None,
-    };
 
     let dt = Utc::now();
     let valid_after = dt.timestamp() as u64;
     let valid_until = dt.timestamp() as u64 + 3600;
 
-    let mut user_op_tx = wallet_lib
-        .from_transaction(
-            ethers::utils::parse_units(gas_price, "gwei")
-                .unwrap()
-                .into(),
-            ethers::utils::parse_units(gas_price, "gwei")
-                .unwrap()
-                .into(),
-            Address::from_str(&req.from).unwrap(),
-            vec![tx],
-            None,
-        )
-        .await
-        .map_err(|e| anyhow::anyhow!("Err{}", e))?;
+    let mut user_op_tx = req.user_op.clone();
     let _ = wallet_lib
         .estimate_user_operation_gas(&mut user_op_tx, None)
         .await
         .map_err(|e| anyhow::anyhow!("Err{}", e))?;
+
+    user_op_tx.verification_gas_limit = user_op_tx.verification_gas_limit.add(U256::from(40000));
+    user_op_tx.pre_verification_gas = user_op_tx.pre_verification_gas.add(U256::from(1872));
+    
     let (packed_user_op_hash, validation_data) = wallet_lib
         .pack_user_op_hash(user_op_tx.clone(), Some(valid_after), Some(valid_until))
         .await
@@ -112,7 +89,6 @@ async fn try_send_transaction(
         .pack_user_op_signature(signature, validation_data, None)
         .await
         .map_err(|e| anyhow::anyhow!("Err{}", e))?;
-
     user_op_tx.signature = ethers::types::Bytes::from(packed_signature_ret);
     let _ = wallet_lib
         .send_user_operation(user_op_tx.clone())
