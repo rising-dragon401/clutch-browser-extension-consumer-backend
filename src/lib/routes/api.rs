@@ -5,12 +5,13 @@ use utoipa_swagger_ui::SwaggerUi;
 use utoipa::OpenApi;
 use super::{account_api, guardian_api, transaction_api, verification_api};
 use crate::models::api;
+use clutch_wallet_lib::utils::bundler;
 
 #[derive(OpenApi)]
 #[openapi(
     info(description = "Clutch Api description"),
     components(schemas(api::Account, api::VerificationRequest, api::VerificationResponse, api::AccountCreateRequest, api::AccountCreateResponse,
-    api::SendTransactionRequest, api::SendTransactionResponse)),
+    api::SendTransactionRequest, api::SendTransactionResponse, bundler::UserOperationTransport)),
     paths(verification_api::create_verification, account_api::create_account, transaction_api::send_transaction)
 )]
 struct ApiDoc;
