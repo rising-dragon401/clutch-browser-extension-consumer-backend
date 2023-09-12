@@ -712,6 +712,7 @@ dependencies = [
  "serde_json",
  "serde_tuple",
  "tokio",
+ "utoipa",
 ]
 
 [[package]]

@@ -20,15 +20,15 @@ key = "secure/test.key"
 
 [wallet]
 chain_id = 1337
-private = "9131cbad8e7e5369d670022b3ea8781d7ed83681a3720d3e551833816c2fb6a4"
+private = "08266d3c24aaa41651c4b9bd7ca52c937afe6a535a0f735dd3c7168fe01741ee"
 rpc = "http://localhost:8545"
 bundler_url = "http://localhost:3000/rpc"
 
 [contracts]
 wallet_factory_address="0x6eca9bac37ba92908805c68c2de7106dd15fde28"
 default_callback_handler_address="0xc4b4f2df5a4936aeda4df93ec203d6c6100bdb7f"
-key_store_module_address="0x9cef0d6889154f56fc266c9e54250cbc5c0c9bfe"
+key_store_module_address="0xf16e8831312c0a4b884e49a639083c2ec9cfd4f1"
 security_control_module_address="0x861adf70d644dfe2038775f648d2509190ee7579"
 entry_point_address="0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
-paymaster="----"
+paymaster="0xdd3c251044ee1759e668d9fb4a0d6915e8e6e4d7"
 wallet_logic="0x240c9cebe72a7f3010b40b5ef166be1ed56ddf44"
