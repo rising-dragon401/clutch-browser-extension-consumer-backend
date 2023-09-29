@@ -9,7 +9,7 @@ use clutch_wallet_lib::utils::bundler;
 
 #[derive(OpenApi)]
 #[openapi(
-    info(description = "Clutch Api description"),
+    info(description = "Clutch Api description", title = "Clutch Account Abstraction Wallet"),
     components(schemas(api::Account, api::VerificationRequest, api::VerificationResponse, api::AccountCreateRequest, api::AccountCreateResponse,
     api::SendTransactionRequest, api::SendTransactionResponse, bundler::UserOperationTransport)),
     paths(verification_api::create_verification, account_api::create_account, transaction_api::send_transaction)
